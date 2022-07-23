@@ -99,6 +99,11 @@ fn process_bulk_order_placements(
         );
     }
     for order_placement in orders {
+        // There will always be exactly one pair between two assets. For example, between
+        // SEI and ATOM, there will only be SEI/ATOM, in which case SEI is the price denom
+        // and ATOM is the asset denom. `PositionDirection::Long` on SEI/ATOM is equivalent
+        // to buying ATOM with SEI, whereas `PositionDirection::Short` on SEI/ATOM is
+        // equivalent to selling ATOM into SEI (or, buying SEI with ATOM).
         let order = order_placement.to_order()?;
         let denom = if order.direction == PositionDirection::Long {
             order.price_denom.to_owned()
