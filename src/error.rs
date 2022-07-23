@@ -1,6 +1,5 @@
-use cosmwasm_std::{StdError, Decimal};
+use cosmwasm_std::StdError;
 use thiserror::Error;
-use semver::Error as SemError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ContractError {
@@ -9,4 +8,7 @@ pub enum ContractError {
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
+
+    #[error("Invalid order data")]
+    InvalidOrderData(),
 }

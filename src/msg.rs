@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal};
+use crate::state::{DepositInfo, LiquidationRequest, OrderPlacement, SettlementEntry};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -30,58 +30,7 @@ pub enum SudoMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct SettlementEntry {
-    pub account: String,
-    pub price_denom: String,
-    pub asset_denom: String,
-    pub quantity: Decimal,
-    pub execution_cost_or_proceed: Decimal,
-    pub expected_cost_or_proceed: Decimal,
-    pub position_direction: PositionDirection,
-    pub order_type: OrderType,
-    pub order_id: u64,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct OrderPlacement {
-    pub id: u64,
-    pub status: i32,
-    pub account: String,
-    pub contract_address: String,
-    pub price_denom: String,
-    pub asset_denom: String,
-    pub price: Decimal,
-    pub quantity: Decimal,
-    pub order_type: i32,
-    pub position_direction: i32,
-    pub data: String,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct DepositInfo {
-    pub account: String,
-    pub denom: String,
-    pub amount: Decimal,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct LiquidationRequest {
-    pub requestor: String,
-    pub account: String,
-}
-
-#[derive(Serialize, Deserialize, Copy, Clone, Debug, PartialEq, JsonSchema, Eq, Hash)]
-pub enum PositionDirection {
-    Unknown,
-    Long,
-    Short,
-}
-
-#[derive(Serialize, Deserialize, Copy, Clone, Debug, PartialEq, JsonSchema, Eq, Hash)]
-pub enum OrderType {
-    Unknown,
-    Limit,
-    Market,
-    Liquidation,
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
+pub struct BulkOrderPlacementsResponse {
+    pub unsuccessful_order_ids: Vec<u64>,
 }
