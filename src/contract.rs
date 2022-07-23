@@ -1,9 +1,12 @@
 use crate::balance::{get_balance, save_balance};
 use crate::error::ContractError;
 use crate::msg::{BulkOrderPlacementsResponse, InstantiateMsg, MigrateMsg, SudoMsg};
-use crate::order::save_order;
+use crate::order::{delete_order, get_order, save_order};
 use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
-use cosmwasm_std::{entry_point, Binary, DepsMut, Env, MessageInfo, Response, StdError};
+use crate::utils::decimal_to_u128;
+use cosmwasm_std::{
+    entry_point, BankMsg, Binary, Coin, DepsMut, Env, MessageInfo, Response, StdError,
+};
 use cw2::set_contract_version;
 use sei_cosmwasm::SeiQueryWrapper;
 use semver::{Error as SemErr, Version};
@@ -71,11 +74,90 @@ pub fn sudo(
 }
 
 fn process_settlements(
-    _: DepsMut<SeiQueryWrapper>,
-    _: Vec<SettlementEntry>,
+    deps: DepsMut<SeiQueryWrapper>,
+    settlements: Vec<SettlementEntry>,
 ) -> Result<Response, ContractError> {
-    // TODO
-    Ok(Response::default())
+    let mut response: Response = Response::new();
+    for settlement in settlements {
+        let order_result = get_order(deps.storage, settlement.order_id);
+        if let Ok(mut order) = order_result {
+            if settlement.quantity > order.remaining_quantity {
+                // This should never happen unless there is a bug in the contract.
+                return Err(ContractError::InvalidSettlement(
+                    "Quantity too large".to_owned(),
+                ));
+            }
+
+            // update order state
+            if settlement.quantity == order.remaining_quantity {
+                delete_order(deps.storage, settlement.order_id);
+            } else {
+                order.remaining_quantity -= settlement.quantity;
+                save_order(deps.storage, &order);
+            }
+
+            let is_buy = order.direction == PositionDirection::Long;
+            let withheld_denom = if is_buy {
+                order.price_denom.to_owned()
+            } else {
+                order.asset_denom.to_owned()
+            };
+            let withheld_delta = if is_buy {
+                settlement.execution_cost_or_proceed * settlement.quantity
+            } else {
+                settlement.quantity
+            };
+            let proceed_denom = if is_buy {
+                order.asset_denom.to_owned()
+            } else {
+                order.price_denom.to_owned()
+            };
+            let proceed_amount = if is_buy {
+                settlement.quantity
+            } else {
+                settlement.quantity * settlement.execution_cost_or_proceed
+            };
+
+            // update balance state
+            let mut withheld_balance = get_balance(
+                deps.storage,
+                order.account.to_owned(),
+                withheld_denom.to_owned(),
+            );
+            if withheld_delta > withheld_balance.amount
+                || withheld_delta > withheld_balance.withheld
+            {
+                // This should never happen unless there is a bug in the contract.
+                return Err(ContractError::InvalidSettlement(
+                    "Insufficient withheld balance".to_owned(),
+                ));
+            }
+            withheld_balance.amount -= withheld_delta;
+            withheld_balance.withheld -= withheld_delta;
+            save_balance(
+                deps.storage,
+                order.account.to_owned(),
+                withheld_denom.to_owned(),
+                &withheld_balance,
+            );
+
+            // send Bank messages to settle the trade
+            let funds_to_send = vec![Coin::new(
+                decimal_to_u128(proceed_amount),
+                proceed_denom.to_owned(),
+            )];
+            response = response.add_message(BankMsg::Send {
+                to_address: order.account.to_owned(),
+                amount: funds_to_send,
+            });
+        } else {
+            deps.api.debug(&format!(
+                "Order {} not found. Skipping settlement.",
+                settlement.order_id
+            ));
+        }
+    }
+    Ok(response)
 }
 
 fn process_bulk_order_placements(

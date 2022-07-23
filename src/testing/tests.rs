@@ -3,11 +3,14 @@ use crate::contract::{instantiate, migrate, sudo};
 use crate::error::ContractError;
 use crate::msg::{BulkOrderPlacementsResponse, InstantiateMsg, MigrateMsg, SudoMsg};
 use crate::order::get_order;
-use crate::state::{DepositInfo, OrderPlacement};
+use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
 use crate::testing::mock_querier::mock_dependencies;
+use crate::testing::utils::vanilla_order_placement;
 use cosmwasm_std::testing::{mock_env, mock_info};
-use cosmwasm_std::{Decimal, StdError};
+use cosmwasm_std::{BankMsg, Coin, CosmosMsg, Decimal, StdError};
 use std::str;
+
+use super::utils::vanilla_settlement_entry;
 
 #[test]
 fn test_bulk_order_placements() {
@@ -21,19 +24,7 @@ fn test_bulk_order_placements() {
     )
     .unwrap();
 
-    let buy_order_placement = OrderPlacement {
-        id: 0,
-        status: 0,
-        account: "test".to_owned(),
-        contract_address: "test".to_owned(),
-        price_denom: "usei".to_owned(),
-        asset_denom: "uatom".to_owned(),
-        price: Decimal::one(),
-        quantity: Decimal::one(),
-        order_type: 0,
-        position_direction: 0,
-        data: "{\"position_effect\":\"Open\"}".to_owned(),
-    };
+    let buy_order_placement = vanilla_order_placement();
     // unsuccessful due to insufficient funds
     let msg = SudoMsg::BulkOrderPlacements {
         orders: vec![buy_order_placement.to_owned()],
@@ -149,6 +140,105 @@ fn test_bulk_order_placements() {
     let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "uatom".to_owned());
     assert_eq!(Decimal::one(), balance.amount);
     assert_eq!(Decimal::one(), balance.withheld);
+}
+
+#[test]
+fn test_process_settlements() {
+    let mut deps = mock_dependencies(&vec![]);
+    let env = mock_env();
+    instantiate(
+        deps.as_mut(),
+        env,
+        mock_info("admin", &[]),
+        InstantiateMsg {},
+    )
+    .unwrap();
+
+    let buy_order_placement = vanilla_order_placement();
+    // place a buy order
+    let msg = SudoMsg::BulkOrderPlacements {
+        orders: vec![buy_order_placement.to_owned()],
+        deposits: vec![DepositInfo {
+            account: "test".to_owned(),
+            denom: "usei".to_owned(),
+            amount: Decimal::one(),
+        }],
+    };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+
+    // settle buy order
+    let buy_settlement = vanilla_settlement_entry();
+    let msg = SudoMsg::Settlement {
+        epoch: 0,
+        entries: vec![buy_settlement],
+    };
+    let res = sudo(deps.as_mut(), mock_env(), msg).unwrap();
+    assert_eq!(1, res.messages.len());
+    if let CosmosMsg::Bank(bank_msg) = res.messages[0].msg.to_owned() {
+        assert_eq!(
+            BankMsg::Send {
+                to_address: "test".to_owned(),
+                amount: vec![Coin::new(1, "uatom")]
+            },
+            bank_msg
+        );
+    } else {
+        panic!("Should have sent bank message");
+    }
+    match get_order(deps.as_ref().storage, 0) {
+        Ok(_) => panic!("Order shouldn't exist"),
+        Err(_) => (),
+    };
+    let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
+    assert_eq!(Decimal::zero(), balance.amount);
+    assert_eq!(Decimal::zero(), balance.withheld);
+
+    // place a sell order
+    let buy_order_placement = OrderPlacement {
+        id: 1,
+        position_direction: 1,
+        ..vanilla_order_placement()
+    };
+    let msg = SudoMsg::BulkOrderPlacements {
+        orders: vec![buy_order_placement.to_owned()],
+        deposits: vec![DepositInfo {
+            account: "test".to_owned(),
+            denom: "uatom".to_owned(),
+            amount: Decimal::one(),
+        }],
+    };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+
+    // settle buy order
+    let sell_settlement = SettlementEntry {
+        order_id: 1,
+        position_direction: PositionDirection::Short,
+        ..vanilla_settlement_entry()
+    };
+    let msg = SudoMsg::Settlement {
+        epoch: 0,
+        entries: vec![sell_settlement],
+    };
+    let res = sudo(deps.as_mut(), mock_env(), msg).unwrap();
+    assert_eq!(1, res.messages.len());
+    if let CosmosMsg::Bank(bank_msg) = res.messages[0].msg.to_owned() {
+        assert_eq!(
+            BankMsg::Send {
+                to_address: "test".to_owned(),
+                amount: vec![Coin::new(1, "usei")]
+            },
+            bank_msg
+        );
+    } else {
+        panic!("Should have sent bank message");
+    }
+    match get_order(deps.as_ref().storage, 0) {
+        Ok(_) => panic!("Order shouldn't exist"),
+        Err(_) => (),
+    };
+    let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "uatom".to_owned());
+    assert_eq!(Decimal::zero(), balance.amount);
+    assert_eq!(Decimal::zero(), balance.withheld);
 }
 
 #[test]

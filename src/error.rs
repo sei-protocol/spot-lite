@@ -11,4 +11,7 @@ pub enum ContractError {
 
     #[error("Invalid order data")]
     InvalidOrderData(),
+
+    #[error("Invalid settlement: {0}")]
+    InvalidSettlement(String),
 }
