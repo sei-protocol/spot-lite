@@ -84,6 +84,7 @@ type BalanceExpectation struct {
 
 type OrderExpectation struct {
 	Moniker string `json:"moniker"`
+	Exists  bool   `json:"exists"`
 	Order   Order  `json:"order"`
 }
 
