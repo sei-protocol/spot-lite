@@ -8,6 +8,34 @@
     ],
     "inputs": [
         {
+            "type": "starting_balance",
+            "details": {
+                "account": "alice",
+                "denom": "usei"
+            }
+        },
+        {
+            "type": "starting_balance",
+            "details": {
+                "account": "alice",
+                "denom": "uatom"
+            }
+        },
+        {
+            "type": "starting_balance",
+            "details": {
+                "account": "bob",
+                "denom": "usei"
+            }
+        },
+        {
+            "type": "starting_balance",
+            "details": {
+                "account": "bob",
+                "denom": "uatom"
+            }
+        },
+        {
             "type": "order_placement",
             "details": {
                 "account": "alice",
@@ -74,6 +102,28 @@
                     "effect": "Open",
                     "order_type": "Limit"
                 }
+            }
+        ],
+        "bank_balances": [
+            {
+                "account": "alice",
+                "denom": "usei",
+                "delta": "-20"
+            },
+            {
+                "account": "alice",
+                "denom": "uatom",
+                "delta": "1"
+            },
+            {
+                "account": "bob",
+                "denom": "usei",
+                "delta": "10"
+            },
+            {
+                "account": "bob",
+                "denom": "uatom",
+                "delta": "-1"
             }
         ]
     }

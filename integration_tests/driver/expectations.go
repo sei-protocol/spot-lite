@@ -4,6 +4,7 @@ import (
 	"math"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sei-protocol/spot-integration-tests/parser"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,6 +17,9 @@ func (h *Handler) VerifyExpectations(t *testing.T, expectations parser.Expectati
 	}
 	for _, order := range expectations.Orders {
 		h.verifyOrder(t, order, contractAddr)
+	}
+	for _, bankBalance := range expectations.BankBalances {
+		h.verifyBankBalance(t, bankBalance)
 	}
 }
 
@@ -30,4 +34,16 @@ func (h *Handler) verifyOrder(t *testing.T, orderExpectation parser.OrderExpecta
 	orderExpectation.Order.Id = orderID
 	orderExpectation.Order.Account = order.Account
 	assert.Equal(t, order, orderExpectation.Order)
+}
+
+func (h *Handler) verifyBankBalance(t *testing.T, bankBalanceExpectation parser.BankBalanceExpectation) {
+	var oldBankBalance sdk.Int
+	for _, coin := range h.keyNameToStartingBalances[bankBalanceExpectation.Account] {
+		if coin.Denom == bankBalanceExpectation.Denom {
+			oldBankBalance = coin.Amount
+			break
+		}
+	}
+	newBankBalance := GetBankBalance(bankBalanceExpectation.Account, bankBalanceExpectation.Denom).Amount
+	assert.Equal(t, bankBalanceExpectation.Delta, newBankBalance.Sub(oldBankBalance))
 }

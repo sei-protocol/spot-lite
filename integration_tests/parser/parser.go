@@ -32,6 +32,14 @@ func ParseCancel(raw json.RawMessage) Cancel {
 	return cancel
 }
 
+func ParseStartingBalance(raw json.RawMessage) StartingBalance {
+	startingBalance := StartingBalance{}
+	if err := json.Unmarshal(raw, &startingBalance); err != nil {
+		panic(err)
+	}
+	return startingBalance
+}
+
 func ParseBalance(balanceBytes []byte) Balance {
 	var res ContractBalanceResponse
 	if err := json.Unmarshal(balanceBytes, &res); err != nil {

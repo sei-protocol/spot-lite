@@ -41,7 +41,6 @@ pub struct BulkOrderPlacementsResponse {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     GetBalance { account: String, denom: String },
-
     GetOrder { id: u64 },
 }
 

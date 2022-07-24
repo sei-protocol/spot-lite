@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/sei-protocol/spot-integration-tests/parser"
 )
@@ -51,6 +53,21 @@ func IsProposalHandled(proposalId string) bool {
 	}
 	res, err := client.Proposal(context.Background(), &govtypes.QueryProposalRequest{ProposalId: proposalID})
 	return err == nil && res.Proposal.Status == govtypes.StatusPassed
+}
+
+func GetBankBalance(account string, denom string) sdk.Coin {
+	grpcConn := getGRPCConn()
+	defer grpcConn.Close()
+	client := banktypes.NewQueryClient(grpcConn)
+	address, err := sdk.AccAddressFromBech32(GetAddress(account))
+	if err != nil {
+		panic(err)
+	}
+	res, err := client.Balance(context.Background(), banktypes.NewQueryBalanceRequest(address, denom))
+	if err != nil {
+		panic(err)
+	}
+	return *res.Balance
 }
 
 func asciiDecodeString(s string) []byte {

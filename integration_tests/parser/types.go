@@ -65,9 +65,15 @@ type OrderPlacement struct {
 	OrderType         string `json:"order_type"`
 }
 
+type StartingBalance struct {
+	Account string `json:"account"`
+	Denom   string `json:"denom"`
+}
+
 type Expectations struct {
-	Balances []BalanceExpectation `json:"balances"`
-	Orders   []OrderExpectation   `json:"orders"`
+	Balances     []BalanceExpectation     `json:"balances"`
+	Orders       []OrderExpectation       `json:"orders"`
+	BankBalances []BankBalanceExpectation `json:"bank_balances"`
 }
 
 type BalanceExpectation struct {
@@ -79,6 +85,12 @@ type BalanceExpectation struct {
 type OrderExpectation struct {
 	Moniker string `json:"moniker"`
 	Order   Order  `json:"order"`
+}
+
+type BankBalanceExpectation struct {
+	Account string  `json:"account"`
+	Denom   string  `json:"denom"`
+	Delta   sdk.Int `json:"delta"`
 }
 
 type Balance struct {
