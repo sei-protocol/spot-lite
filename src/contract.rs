@@ -244,7 +244,6 @@ fn process_bulk_order_cancellations(
     for id in ids_to_cancel {
         let order_result = get_order(deps.storage, id);
         if let Ok(order) = order_result {
-            delete_order(deps.storage, id);
             let withheld_denom = if order.direction == PositionDirection::Long {
                 order.price_denom.to_owned()
             } else {
@@ -267,6 +266,8 @@ fn process_bulk_order_cancellations(
                 withheld_denom.to_owned(),
                 &withheld_balance,
             );
+
+            delete_order(deps.storage, id);
         } else {
             deps.api
                 .debug(&format!("Attempting to cancel non-existent order {}", id));
