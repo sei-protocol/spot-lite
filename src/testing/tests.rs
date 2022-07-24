@@ -1,16 +1,63 @@
 use crate::balance::get_balance;
-use crate::contract::{instantiate, migrate, sudo};
+use crate::contract::{instantiate, migrate, query, sudo};
 use crate::error::ContractError;
-use crate::msg::{BulkOrderPlacementsResponse, InstantiateMsg, MigrateMsg, SudoMsg};
+use crate::msg::{
+    BulkOrderPlacementsResponse, GetBalanceResponse, GetOrderResponse, InstantiateMsg, MigrateMsg,
+    QueryMsg, SudoMsg,
+};
 use crate::order::get_order;
-use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
+use crate::state::{Balance, DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
 use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::utils::vanilla_order_placement;
 use cosmwasm_std::testing::{mock_env, mock_info};
-use cosmwasm_std::{BankMsg, Coin, CosmosMsg, Decimal, StdError};
+use cosmwasm_std::{from_binary, BankMsg, Coin, CosmosMsg, Decimal, StdError};
 use std::str;
 
 use super::utils::vanilla_settlement_entry;
+
+#[test]
+fn test_query() {
+    let mut deps = mock_dependencies(&vec![]);
+    let env = mock_env();
+    instantiate(
+        deps.as_mut(),
+        env,
+        mock_info("admin", &[]),
+        InstantiateMsg {},
+    )
+    .unwrap();
+
+    let buy_order_placement = vanilla_order_placement();
+    // place a buy order
+    let msg = SudoMsg::BulkOrderPlacements {
+        orders: vec![buy_order_placement.to_owned()],
+        deposits: vec![DepositInfo {
+            account: "test".to_owned(),
+            denom: "usei".to_owned(),
+            amount: Decimal::one(),
+        }],
+    };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+
+    let balance_query = QueryMsg::GetBalance {
+        account: "test".to_owned(),
+        denom: "usei".to_owned(),
+    };
+    let balance_bin = query(deps.as_ref(), mock_env(), balance_query).unwrap();
+    let resp: GetBalanceResponse = from_binary(&balance_bin).unwrap();
+    assert_eq!(
+        Balance {
+            amount: Decimal::one(),
+            withheld: Decimal::one()
+        },
+        resp.balance
+    );
+
+    let order_query = QueryMsg::GetOrder { id: 0 };
+    let order_bin = query(deps.as_ref(), mock_env(), order_query).unwrap();
+    let resp: GetOrderResponse = from_binary(&order_bin).unwrap();
+    assert_eq!(buy_order_placement.to_order().unwrap(), resp.order);
+}
 
 #[test]
 fn test_bulk_order_placements() {
