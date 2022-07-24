@@ -16,3 +16,7 @@ pub fn save_order(storage: &mut dyn Storage, order: &OrderState) {
 pub fn get_order(storage: &dyn Storage, id: u64) -> Result<OrderState, cosmwasm_std::StdError> {
     ORDER.load(storage, id)
 }
+
+pub fn delete_order(storage: &mut dyn Storage, id: u64) {
+    ORDER.remove(storage, id)
+}
