@@ -1,11 +1,15 @@
 use crate::balance::{get_balance, save_balance};
 use crate::error::ContractError;
-use crate::msg::{BulkOrderPlacementsResponse, InstantiateMsg, MigrateMsg, SudoMsg};
+use crate::msg::{
+    BulkOrderPlacementsResponse, GetBalanceResponse, GetOrderResponse, InstantiateMsg, MigrateMsg,
+    QueryMsg, SudoMsg,
+};
 use crate::order::{delete_order, get_order, save_order};
-use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
+use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry, LiquidationResponse};
 use crate::utils::decimal_to_u128;
 use cosmwasm_std::{
-    entry_point, BankMsg, Binary, Coin, DepsMut, Env, MessageInfo, Response, StdError,
+    entry_point, to_binary, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
+    StdError, StdResult,
 };
 use cw2::set_contract_version;
 use sei_cosmwasm::SeiQueryWrapper;
@@ -247,5 +251,39 @@ fn process_bulk_order_cancellations(
 
 fn process_bulk_liquidation() -> Result<Response, ContractError> {
     // spot market doesn't need liquidation for now since it doesn't support short selling or margin
-    Ok(Response::default())
+    let response = LiquidationResponse {
+        successful_accounts: vec![],
+        liquidation_orders: vec![],
+    };
+    let serialized_json = serde_json::to_string(&response).unwrap();
+    let base64_json_str = base64::encode(serialized_json);
+    let binary = Binary::from_base64(base64_json_str.as_ref()).unwrap();
+
+    let mut response: Response = Response::new();
+    response = response.set_data(binary);
+    Ok(response)
+}
+
+#[entry_point]
+pub fn query(deps: Deps<SeiQueryWrapper>, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::GetBalance { account, denom } => get_balance_query(deps, account, denom),
+        QueryMsg::GetOrder { id } => get_order_query(deps, id),
+    }
+}
+
+fn get_balance_query(
+    deps: Deps<SeiQueryWrapper>,
+    account: String,
+    denom: String,
+) -> StdResult<Binary> {
+    let balance = get_balance(deps.storage, account.to_owned(), denom.to_owned());
+    let resp = GetBalanceResponse { balance: balance };
+    to_binary(&resp)
+}
+
+fn get_order_query(deps: Deps<SeiQueryWrapper>, id: u64) -> StdResult<Binary> {
+    let order = get_order(deps.storage, id)?;
+    let resp = GetOrderResponse { order: order };
+    to_binary(&resp)
 }
