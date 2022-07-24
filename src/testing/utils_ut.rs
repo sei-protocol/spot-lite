@@ -15,4 +15,13 @@ pub fn test_decimal_to_u128() {
 
     let fractional = Decimal::from_atomics(15u128, 1).unwrap();
     assert_eq!(1, decimal_to_u128(fractional));
+
+    let dec1 = Decimal::from_atomics(600u128, 0).unwrap();
+    assert_eq!(600, decimal_to_u128(dec1));
+
+    let dec1 = Decimal::from_atomics(600u128, 1).unwrap();
+    assert_eq!(60, decimal_to_u128(dec1));
+
+    let dec1 = Decimal::from_atomics(600u128, 3).unwrap();
+    assert_eq!(0, decimal_to_u128(dec1));
 }
