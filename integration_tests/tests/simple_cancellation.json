@@ -45,7 +45,7 @@
                 "denom": "usei",
                 "balance": {
                     "amount": "20",
-                    "withheld": "20"
+                    "withheld": "0"
                 }
             }
         ],
@@ -59,7 +59,7 @@
             {
                 "account": "alice",
                 "denom": "usei",
-                "delta": "-20"
+                "delta": "-100020"
             }
         ]
     }

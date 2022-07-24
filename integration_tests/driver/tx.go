@@ -2,7 +2,6 @@ package driver
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,7 +52,6 @@ func SendCancel(
 		OrderIds:     []uint64{monikerToOrderIds[order.Moniker]},
 		ContractAddr: contractAddr,
 	}
-	fmt.Println(msg)
 	_ = txBuilder.SetMsgs(&msg)
 	(txBuilder).SetGasLimit(2000000)
 	(txBuilder).SetFeeAmount([]sdk.Coin{
