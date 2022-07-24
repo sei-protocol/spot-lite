@@ -1,0 +1,80 @@
+{
+    "pairs": [
+        {
+            "price_denom": "usei",
+            "asset_denom": "uatom",
+            "ticksize": "1"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "order_placement",
+            "details": {
+                "account": "alice",
+                "order": {
+                    "position_direction": "LONG",
+                    "price": "10",
+                    "quantity": "2",
+                    "price_denom": "usei",
+                    "asset_denom": "uatom",
+                    "position_effect": "Open",
+                    "order_type": "LIMIT"
+                },
+                "fund": "20usei",
+                "moniker": "order-1"
+            }
+        }, {
+            "type": "order_placement",
+            "details": {
+                "account": "bob",
+                "order": {
+                    "position_direction": "SHORT",
+                    "price": "10",
+                    "quantity": "1",
+                    "price_denom": "usei",
+                    "asset_denom": "uatom",
+                    "position_effect": "Open",
+                    "order_type": "MARKET",
+                    "leverage": "1"
+                },
+                "fund": "1uatom",
+                "moniker": "order-2"
+            }
+        }
+    ],
+    "expectations": {
+        "balances": [
+            {
+                "account": "alice",
+                "denom": "usei",
+                "balance": {
+                    "amount": "10",
+                    "withheld": "10"
+                }
+            },
+            {
+                "account": "bob",
+                "denom": "uatom",
+                "balance": {
+                    "amount": "0",
+                    "withheld": "0"
+                }
+            }
+        ],
+        "orders": [
+            {
+                "moniker": "order-1",
+                "order": {
+                    "price_denom": "usei",
+                    "asset_denom": "uatom",
+                    "price": "10",
+                    "quantity": "2",
+                    "remaining_quantity": "1",
+                    "direction": "Long",
+                    "effect": "Open",
+                    "order_type": "Limit"
+                }
+            }
+        ]
+    }
+}

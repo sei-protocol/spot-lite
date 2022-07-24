@@ -1,0 +1,33 @@
+name: 'Integration Tests'
+
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+    
+    - name: setup-docker
+      uses: docker-practice/actions-setup-docker@v1
+
+    - name: Run Sei
+      run: docker run --rm -d -v /var/run/docker.sock:/var/run/docker.sock --name it --network host $(docker build -q -f integration_tests/Dockerfile .)
+    
+    - name: Sleep for 30s
+      run: sleep 30
+
+    - name: Run integration tests
+      run: go test -v run_test.go
+      working-directory: integration_tests

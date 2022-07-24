@@ -135,3 +135,9 @@ pub struct Pair {
     pub price_denom: String,
     pub asset_denom: String,
 }
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
+pub struct LiquidationResponse {
+    pub successful_accounts: Vec<String>,
+    pub liquidation_orders: Vec<OrderPlacement>,
+}

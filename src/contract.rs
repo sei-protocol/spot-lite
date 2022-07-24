@@ -5,7 +5,7 @@ use crate::msg::{
     QueryMsg, SudoMsg,
 };
 use crate::order::{delete_order, get_order, save_order};
-use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
+use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry, LiquidationResponse};
 use crate::utils::decimal_to_u128;
 use cosmwasm_std::{
     entry_point, to_binary, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
@@ -251,7 +251,17 @@ fn process_bulk_order_cancellations(
 
 fn process_bulk_liquidation() -> Result<Response, ContractError> {
     // spot market doesn't need liquidation for now since it doesn't support short selling or margin
-    Ok(Response::default())
+    let response = LiquidationResponse {
+        successful_accounts: vec![],
+        liquidation_orders: vec![],
+    };
+    let serialized_json = serde_json::to_string(&response).unwrap();
+    let base64_json_str = base64::encode(serialized_json);
+    let binary = Binary::from_base64(base64_json_str.as_ref()).unwrap();
+
+    let mut response: Response = Response::new();
+    response = response.set_data(binary);
+    Ok(response)
 }
 
 #[entry_point]
