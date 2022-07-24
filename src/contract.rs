@@ -238,10 +238,40 @@ fn process_bulk_order_placements(
 }
 
 fn process_bulk_order_cancellations(
-    _: DepsMut<SeiQueryWrapper>,
-    _: Vec<u64>,
+    deps: DepsMut<SeiQueryWrapper>,
+    ids_to_cancel: Vec<u64>,
 ) -> Result<Response, ContractError> {
-    // TODO
+    for id in ids_to_cancel {
+        let order_result = get_order(deps.storage, id);
+        if let Ok(order) = order_result {
+            delete_order(deps.storage, id);
+            let withheld_denom = if order.direction == PositionDirection::Long {
+                order.price_denom.to_owned()
+            } else {
+                order.asset_denom.to_owned()
+            };
+            let withheld_delta = if order.direction == PositionDirection::Long {
+                order.remaining_quantity * order.price
+            } else {
+                order.remaining_quantity
+            };
+            let mut withheld_balance = get_balance(
+                deps.storage,
+                order.account.to_owned(),
+                withheld_denom.to_owned(),
+            );
+            withheld_balance.withheld -= withheld_delta;
+            save_balance(
+                deps.storage,
+                order.account.to_owned(),
+                withheld_denom.to_owned(),
+                &withheld_balance,
+            );
+        } else {
+            deps.api
+                .debug(&format!("Attempting to cancel non-existent order {}", id));
+        }
+    }
     Ok(Response::default())
 }
 

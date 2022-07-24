@@ -194,13 +194,13 @@ fn test_process_settlements() {
     assert_eq!(Decimal::zero(), balance.withheld);
 
     // place a sell order
-    let buy_order_placement = OrderPlacement {
+    let sell_order_placement = OrderPlacement {
         id: 1,
         position_direction: 1,
         ..vanilla_order_placement()
     };
     let msg = SudoMsg::BulkOrderPlacements {
-        orders: vec![buy_order_placement.to_owned()],
+        orders: vec![sell_order_placement.to_owned()],
         deposits: vec![DepositInfo {
             account: "test".to_owned(),
             denom: "uatom".to_owned(),
@@ -209,7 +209,7 @@ fn test_process_settlements() {
     };
     sudo(deps.as_mut(), mock_env(), msg).unwrap();
 
-    // settle buy order
+    // settle sell order
     let sell_settlement = SettlementEntry {
         order_id: 1,
         position_direction: PositionDirection::Short,
@@ -232,12 +232,75 @@ fn test_process_settlements() {
     } else {
         panic!("Should have sent bank message");
     }
-    match get_order(deps.as_ref().storage, 0) {
+    match get_order(deps.as_ref().storage, 1) {
         Ok(_) => panic!("Order shouldn't exist"),
         Err(_) => (),
     };
     let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "uatom".to_owned());
     assert_eq!(Decimal::zero(), balance.amount);
+    assert_eq!(Decimal::zero(), balance.withheld);
+}
+
+#[test]
+fn test_bulk_order_cancellations() {
+    let mut deps = mock_dependencies(&vec![]);
+    let env = mock_env();
+    instantiate(
+        deps.as_mut(),
+        env,
+        mock_info("admin", &[]),
+        InstantiateMsg {},
+    )
+    .unwrap();
+
+    let buy_order_placement = vanilla_order_placement();
+    // place a buy order
+    let msg = SudoMsg::BulkOrderPlacements {
+        orders: vec![buy_order_placement.to_owned()],
+        deposits: vec![DepositInfo {
+            account: "test".to_owned(),
+            denom: "usei".to_owned(),
+            amount: Decimal::one(),
+        }],
+    };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+
+    // cancel buy order
+    let msg = SudoMsg::BulkOrderCancellations { ids: vec![0] };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+    match get_order(deps.as_ref().storage, 0) {
+        Ok(_) => panic!("Order shouldn't exist"),
+        Err(_) => (),
+    };
+    let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
+    assert_eq!(Decimal::one(), balance.amount);
+    assert_eq!(Decimal::zero(), balance.withheld);
+
+    // place a sell order
+    let sell_order_placement = OrderPlacement {
+        id: 1,
+        position_direction: 1,
+        ..vanilla_order_placement()
+    };
+    let msg = SudoMsg::BulkOrderPlacements {
+        orders: vec![sell_order_placement.to_owned()],
+        deposits: vec![DepositInfo {
+            account: "test".to_owned(),
+            denom: "uatom".to_owned(),
+            amount: Decimal::one(),
+        }],
+    };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+
+    // cancel sell order
+    let msg = SudoMsg::BulkOrderCancellations { ids: vec![1] };
+    sudo(deps.as_mut(), mock_env(), msg).unwrap();
+    match get_order(deps.as_ref().storage, 1) {
+        Ok(_) => panic!("Order shouldn't exist"),
+        Err(_) => (),
+    };
+    let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "uatom".to_owned());
+    assert_eq!(Decimal::one(), balance.amount);
     assert_eq!(Decimal::zero(), balance.withheld);
 }
 
