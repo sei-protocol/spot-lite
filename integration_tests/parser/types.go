@@ -55,6 +55,11 @@ type Deposit struct {
 	Fund    string `json:"fund"`
 }
 
+type Withdraw struct {
+	Account string `json:"account"`
+	Fund    string `json:"fund"`
+}
+
 type OrderPlacement struct {
 	PositionDirection string `json:"position_direction"`
 	Price             string `json:"price"`
@@ -110,6 +115,14 @@ type Order struct {
 	Direction         string `json:"direction"`
 	Effect            string `json:"effect"`
 	OrderType         string `json:"order_type"`
+}
+
+type ContractWithdrawMsg struct {
+	Withdraw ContractWithdraw `json:"withdraw"`
+}
+
+type ContractWithdraw struct {
+	Coins sdk.Coins `json:"coins"`
 }
 
 type ContractBalanceResponse struct {

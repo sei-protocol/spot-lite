@@ -14,4 +14,7 @@ pub enum ContractError {
 
     #[error("Invalid settlement: {0}")]
     InvalidSettlement(String),
+
+    #[error("Insufficient fund")]
+    InsufficientFund(),
 }

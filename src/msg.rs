@@ -1,6 +1,7 @@
 use crate::state::{
     Balance, DepositInfo, LiquidationRequest, Order, OrderPlacement, SettlementEntry,
 };
+use cosmwasm_std::{Coin};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -52,4 +53,11 @@ pub struct GetBalanceResponse {
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
 pub struct GetOrderResponse {
     pub order: Order,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecuteMsg {
+    Deposit {},
+    Withdraw {coins: Vec<Coin>, },
 }

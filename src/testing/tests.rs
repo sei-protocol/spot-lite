@@ -1,9 +1,9 @@
 use crate::balance::get_balance;
-use crate::contract::{instantiate, migrate, query, sudo};
+use crate::contract::{instantiate, migrate, query, sudo, execute};
 use crate::error::ContractError;
 use crate::msg::{
     BulkOrderPlacementsResponse, GetBalanceResponse, GetOrderResponse, InstantiateMsg, MigrateMsg,
-    QueryMsg, SudoMsg,
+    QueryMsg, SudoMsg, ExecuteMsg,
 };
 use crate::order::get_order;
 use crate::state::{Balance, DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
@@ -57,6 +57,38 @@ fn test_query() {
     let order_bin = query(deps.as_ref(), mock_env(), order_query).unwrap();
     let resp: GetOrderResponse = from_binary(&order_bin).unwrap();
     assert_eq!(buy_order_placement.to_order().unwrap(), resp.order);
+}
+
+#[test]
+fn test_deposit_withdraw() {
+    let mut deps = mock_dependencies(&vec![]);
+    let env = mock_env();
+    instantiate(
+        deps.as_mut(),
+        env,
+        mock_info("admin", &[]),
+        InstantiateMsg {},
+    )
+    .unwrap();
+
+    let msg = ExecuteMsg::Deposit {};
+    execute(deps.as_mut(), mock_env(), mock_info("test", &vec![
+        Coin::new(100, "usei")
+    ]), msg).unwrap();
+    let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
+    assert_eq!(balance.amount, Decimal::from_atomics(100u128, 0).unwrap());
+    assert_eq!(balance.withheld, Decimal::zero());
+
+    let msg = ExecuteMsg::Withdraw { coins: vec![Coin::new(150, "usei")] };
+    match execute(deps.as_mut(), mock_env(), mock_info("test", &[]), msg) {
+        Ok(_) => panic!("Withdrawing more than you have is no ok"),
+        Err(_) => (),
+    };
+    let msg = ExecuteMsg::Withdraw { coins: vec![Coin::new(99, "usei")] };
+    execute(deps.as_mut(), mock_env(), mock_info("test", &[]), msg).unwrap();
+    let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
+    assert_eq!(balance.amount, Decimal::one());
+    assert_eq!(balance.withheld, Decimal::zero());
 }
 
 #[test]

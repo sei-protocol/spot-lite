@@ -2,14 +2,14 @@ use crate::balance::{get_balance, save_balance};
 use crate::error::ContractError;
 use crate::msg::{
     BulkOrderPlacementsResponse, GetBalanceResponse, GetOrderResponse, InstantiateMsg, MigrateMsg,
-    QueryMsg, SudoMsg,
+    QueryMsg, SudoMsg, ExecuteMsg,
 };
 use crate::order::{delete_order, get_order, save_order};
 use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry, LiquidationResponse};
 use crate::utils::decimal_to_u128;
 use cosmwasm_std::{
     entry_point, to_binary, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
-    StdError, StdResult,
+    StdError, StdResult, Decimal,
 };
 use cw2::set_contract_version;
 use sei_cosmwasm::SeiQueryWrapper;
@@ -317,4 +317,45 @@ fn get_order_query(deps: Deps<SeiQueryWrapper>, id: u64) -> StdResult<Binary> {
     let order = get_order(deps.storage, id)?;
     let resp = GetOrderResponse { order: order };
     to_binary(&resp)
+}
+
+#[entry_point]
+pub fn execute(
+    deps: DepsMut<SeiQueryWrapper>,
+    _: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
+    match msg {
+        ExecuteMsg::Deposit {} => deposit(deps, info),
+        ExecuteMsg::Withdraw { coins } => withdraw(deps, info, coins),
+    }
+}
+
+fn deposit(deps: DepsMut<SeiQueryWrapper>, info: MessageInfo) -> Result<Response, ContractError> {
+    let account = info.sender.into_string();
+    for coin in info.funds {
+        let mut balance = get_balance(deps.storage, account.to_owned(), coin.denom.to_owned());
+        balance.amount += Decimal::from_atomics(coin.amount, 0).unwrap();
+        save_balance(deps.storage, account.to_owned(), coin.denom.to_owned(), &balance)
+    }
+    Ok(Response::default())
+}
+
+fn withdraw(deps: DepsMut<SeiQueryWrapper>, info: MessageInfo, coins: Vec<Coin>) -> Result<Response, ContractError> {
+    let account = info.sender.into_string();
+    for coin in coins.to_owned() {
+        let mut balance = get_balance(deps.storage, account.to_owned(), coin.denom.to_owned());
+        let amount = Decimal::from_atomics(coin.amount, 0).unwrap();
+        if balance.amount - balance.withheld < amount {
+            return Err(ContractError::InsufficientFund())
+        }
+        balance.amount -= amount;
+        save_balance(deps.storage, account.to_owned(), coin.denom.to_owned(), &balance)
+    }
+    let response = Response::new().add_message(BankMsg::Send {
+        to_address: account.to_owned(),
+        amount: coins,
+    });
+    Ok(response)
 }
