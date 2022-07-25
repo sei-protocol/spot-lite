@@ -16,6 +16,7 @@ import (
 // each scenario now are independent
 var TESTS_TO_RUN = []string{
 	"simple_buy_sell",
+	"simple_cancellation",
 }
 
 func getEncodingConfig() parser.EncodingConfig {

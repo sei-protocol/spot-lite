@@ -1,0 +1,66 @@
+{
+    "pairs": [
+        {
+            "price_denom": "usei",
+            "asset_denom": "uatom",
+            "ticksize": "1"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "starting_balance",
+            "details": {
+                "account": "alice",
+                "denom": "usei"
+            }
+        },
+        {
+            "type": "order_placement",
+            "details": {
+                "account": "alice",
+                "order": {
+                    "position_direction": "LONG",
+                    "price": "10",
+                    "quantity": "2",
+                    "price_denom": "usei",
+                    "asset_denom": "uatom",
+                    "position_effect": "Open",
+                    "order_type": "LIMIT"
+                },
+                "fund": "20usei",
+                "moniker": "order-1"
+            }
+        }, {
+            "type": "order_cancellation",
+            "details": {
+                "account": "alice",
+                "moniker": "order-1"
+            }
+        }
+    ],
+    "expectations": {
+        "balances": [
+            {
+                "account": "alice",
+                "denom": "usei",
+                "balance": {
+                    "amount": "20",
+                    "withheld": "0"
+                }
+            }
+        ],
+        "orders": [
+            {
+                "moniker": "order-1",
+                "exists": false
+            }
+        ],
+        "bank_balances": [
+            {
+                "account": "alice",
+                "denom": "usei",
+                "delta": "-100020"
+            }
+        ]
+    }
+}

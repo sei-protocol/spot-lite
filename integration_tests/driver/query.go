@@ -14,19 +14,22 @@ import (
 
 func QueryBalance(address string, denom string, contractAddr string) parser.Balance {
 	query := fmt.Sprintf("{\"get_balance\":{\"account\":\"%s\",\"denom\":\"%s\"}}", address, denom)
-	response := queryWasm(query, contractAddr)
+	response, _ := queryWasm(query, contractAddr)
 
 	return parser.ParseBalance(response)
 }
 
-func QueryOrder(orderID uint64, contractAddr string) parser.Order {
+func QueryOrder(orderID uint64, contractAddr string) (parser.Order, error) {
 	query := fmt.Sprintf("{\"get_order\":{\"id\":%d}}", orderID)
-	response := queryWasm(query, contractAddr)
+	response, err := queryWasm(query, contractAddr)
+	if err != nil {
+		return parser.Order{}, err
+	}
 
-	return parser.ParseOrder(response)
+	return parser.ParseOrder(response), nil
 }
 
-func queryWasm(query string, contractAddr string) wasmtypes.RawContractMessage {
+func queryWasm(query string, contractAddr string) (wasmtypes.RawContractMessage, error) {
 	grpcConn := getGRPCConn()
 	defer grpcConn.Close()
 	client := wasmtypes.NewQueryClient(grpcConn)
@@ -38,9 +41,9 @@ func queryWasm(query string, contractAddr string) wasmtypes.RawContractMessage {
 		},
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return res.Data
+	return res.Data, nil
 }
 
 func IsProposalHandled(proposalId string) bool {

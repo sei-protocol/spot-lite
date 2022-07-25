@@ -30,10 +30,14 @@ func (h *Handler) verifyBalance(t *testing.T, balanceExpectation parser.BalanceE
 
 func (h *Handler) verifyOrder(t *testing.T, orderExpectation parser.OrderExpectation, contractAddr string) {
 	orderID := h.monikerToOrderIds[orderExpectation.Moniker]
-	order := QueryOrder(orderID, contractAddr)
-	orderExpectation.Order.Id = orderID
-	orderExpectation.Order.Account = order.Account
-	assert.Equal(t, order, orderExpectation.Order)
+	order, err := QueryOrder(orderID, contractAddr)
+	if !orderExpectation.Exists {
+		assert.NotNil(t, err)
+	} else {
+		orderExpectation.Order.Id = orderID
+		orderExpectation.Order.Account = order.Account
+		assert.Equal(t, order, orderExpectation.Order)
+	}
 }
 
 func (h *Handler) verifyBankBalance(t *testing.T, bankBalanceExpectation parser.BankBalanceExpectation) {

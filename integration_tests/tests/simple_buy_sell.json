@@ -92,6 +92,7 @@
         "orders": [
             {
                 "moniker": "order-1",
+                "exists": true,
                 "order": {
                     "price_denom": "usei",
                     "asset_denom": "uatom",
@@ -102,6 +103,10 @@
                     "effect": "Open",
                     "order_type": "Limit"
                 }
+            },
+            {
+                "moniker": "order-2",
+                "exists": false
             }
         ],
         "bank_balances": [
