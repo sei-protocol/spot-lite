@@ -17,6 +17,8 @@ import (
 var TESTS_TO_RUN = []string{
 	"simple_buy_sell",
 	"simple_cancellation",
+	"simple_deposit",
+	"simple_withdraw",
 }
 
 func getEncodingConfig() parser.EncodingConfig {

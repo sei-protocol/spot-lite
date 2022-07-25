@@ -24,6 +24,22 @@ func ParseFundedOrder(raw json.RawMessage) FundedOrder {
 	return order
 }
 
+func ParseDeposit(raw json.RawMessage) Deposit {
+	deposit := Deposit{}
+	if err := json.Unmarshal(raw, &deposit); err != nil {
+		panic(err)
+	}
+	return deposit
+}
+
+func ParseWithdraw(raw json.RawMessage) Withdraw {
+	withdraw := Withdraw{}
+	if err := json.Unmarshal(raw, &withdraw); err != nil {
+		panic(err)
+	}
+	return withdraw
+}
+
 func ParseCancel(raw json.RawMessage) Cancel {
 	cancel := Cancel{}
 	if err := json.Unmarshal(raw, &cancel); err != nil {

@@ -1,0 +1,51 @@
+{
+    "pairs": [
+        {
+            "price_denom": "usei",
+            "asset_denom": "uatom",
+            "ticksize": "1"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "starting_balance",
+            "details": {
+                "account": "alice",
+                "denom": "usei"
+            }
+        },
+        {
+            "type": "deposit",
+            "details": {
+                "account": "alice",
+                "fund": "20usei"
+            }
+        },
+        {
+            "type": "withdraw",
+            "details": {
+                "account": "alice",
+                "fund": "20usei"
+            }
+        }
+    ],
+    "expectations": {
+        "balances": [
+            {
+                "account": "alice",
+                "denom": "usei",
+                "balance": {
+                    "amount": "0",
+                    "withheld": "0"
+                }
+            }
+        ],
+        "bank_balances": [
+            {
+                "account": "alice",
+                "denom": "usei",
+                "delta": "-200000"
+            }
+        ]
+    }
+}
