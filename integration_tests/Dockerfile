@@ -23,7 +23,7 @@ RUN mkdir repos
 WORKDIR /repos
 # Each Vortex commit needs to specify which sei-chain version it should be deployed on. Once sei-chain enters
 # a more stable release cycle, we can change raw commit hash here to release tag.
-RUN git clone https://github.com/sei-protocol/sei-chain.git && cd sei-chain && git checkout 5b5ff2ecf767a401fe94bb8c1c2762490a2a5416
+RUN git clone https://github.com/sei-protocol/sei-chain.git && cd sei-chain && git checkout a2cb8833ff391dd6539147f1fa7f4fefa89c7724
 WORKDIR /repos/sei-chain
 RUN make install
 RUN /go/bin/seid init integration --chain-id sei-chain
