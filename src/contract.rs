@@ -1,15 +1,17 @@
 use crate::balance::{get_balance, save_balance};
 use crate::error::ContractError;
 use crate::msg::{
-    BulkOrderPlacementsResponse, GetBalanceResponse, GetOrderResponse, InstantiateMsg, MigrateMsg,
-    QueryMsg, SudoMsg, ExecuteMsg,
+    BulkOrderPlacementsResponse, ExecuteMsg, GetBalanceResponse, GetOrderResponse, InstantiateMsg,
+    MigrateMsg, QueryMsg, SudoMsg, UnsuccessfulOrder,
 };
 use crate::order::{delete_order, get_order, save_order};
-use crate::state::{DepositInfo, OrderPlacement, PositionDirection, SettlementEntry, LiquidationResponse};
+use crate::state::{
+    DepositInfo, LiquidationResponse, OrderPlacement, PositionDirection, SettlementEntry,
+};
 use crate::utils::decimal_to_u128;
 use cosmwasm_std::{
-    entry_point, to_binary, BankMsg, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response,
-    StdError, StdResult, Decimal,
+    entry_point, to_binary, BankMsg, Binary, Coin, Decimal, Deps, DepsMut, Env, MessageInfo,
+    Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
 use sei_cosmwasm::SeiQueryWrapper;
@@ -169,7 +171,7 @@ fn process_bulk_order_placements(
     orders: Vec<OrderPlacement>,
     deposits: Vec<DepositInfo>,
 ) -> Result<Response, ContractError> {
-    let mut unsuccessful_order_ids = vec![];
+    let mut unsuccessful_orders = vec![];
     for deposit in deposits {
         let mut balance = get_balance(
             deps.storage,
@@ -210,7 +212,10 @@ fn process_bulk_order_placements(
                 order.price_denom.to_owned(),
                 order.id
             ));
-            unsuccessful_order_ids.push(order.id);
+            unsuccessful_orders.push(UnsuccessfulOrder {
+                id: order.id,
+                reason: "Insufficient balance".to_owned(),
+            });
             continue;
         }
         balance.withheld += nominal;
@@ -224,7 +229,7 @@ fn process_bulk_order_placements(
     }
 
     let response = BulkOrderPlacementsResponse {
-        unsuccessful_order_ids: unsuccessful_order_ids,
+        unsuccessful_orders: unsuccessful_orders,
     };
     let serialized_json = match serde_json::to_string(&response) {
         Ok(val) => val,
@@ -337,21 +342,35 @@ fn deposit(deps: DepsMut<SeiQueryWrapper>, info: MessageInfo) -> Result<Response
     for coin in info.funds {
         let mut balance = get_balance(deps.storage, account.to_owned(), coin.denom.to_owned());
         balance.amount += Decimal::from_atomics(coin.amount, 0).unwrap();
-        save_balance(deps.storage, account.to_owned(), coin.denom.to_owned(), &balance)
+        save_balance(
+            deps.storage,
+            account.to_owned(),
+            coin.denom.to_owned(),
+            &balance,
+        )
     }
     Ok(Response::default())
 }
 
-fn withdraw(deps: DepsMut<SeiQueryWrapper>, info: MessageInfo, coins: Vec<Coin>) -> Result<Response, ContractError> {
+fn withdraw(
+    deps: DepsMut<SeiQueryWrapper>,
+    info: MessageInfo,
+    coins: Vec<Coin>,
+) -> Result<Response, ContractError> {
     let account = info.sender.into_string();
     for coin in coins.to_owned() {
         let mut balance = get_balance(deps.storage, account.to_owned(), coin.denom.to_owned());
         let amount = Decimal::from_atomics(coin.amount, 0).unwrap();
         if balance.amount - balance.withheld < amount {
-            return Err(ContractError::InsufficientFund())
+            return Err(ContractError::InsufficientFund());
         }
         balance.amount -= amount;
-        save_balance(deps.storage, account.to_owned(), coin.denom.to_owned(), &balance)
+        save_balance(
+            deps.storage,
+            account.to_owned(),
+            coin.denom.to_owned(),
+            &balance,
+        )
     }
     let response = Response::new().add_message(BankMsg::Send {
         to_address: account.to_owned(),

@@ -14,6 +14,7 @@ pub fn vanilla_order_placement() -> OrderPlacement {
         order_type: 0,
         position_direction: 0,
         data: "{\"position_effect\":\"Open\"}".to_owned(),
+        status_description: "".to_owned(),
     }
 }
 

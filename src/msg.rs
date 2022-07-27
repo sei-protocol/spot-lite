@@ -1,7 +1,7 @@
 use crate::state::{
     Balance, DepositInfo, LiquidationRequest, Order, OrderPlacement, SettlementEntry,
 };
-use cosmwasm_std::{Coin};
+use cosmwasm_std::Coin;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +35,13 @@ pub enum SudoMsg {
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
 pub struct BulkOrderPlacementsResponse {
-    pub unsuccessful_order_ids: Vec<u64>,
+    pub unsuccessful_orders: Vec<UnsuccessfulOrder>,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
+pub struct UnsuccessfulOrder {
+    pub id: u64,
+    pub reason: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -59,5 +65,5 @@ pub struct GetOrderResponse {
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Deposit {},
-    Withdraw {coins: Vec<Coin>, },
+    Withdraw { coins: Vec<Coin> },
 }
