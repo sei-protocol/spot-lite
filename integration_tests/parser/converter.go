@@ -5,15 +5,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dextypes "github.com/sei-protocol/sei-chain/x/dex/types"
+	dextypesutils "github.com/sei-protocol/sei-chain/x/dex/types/utils"
 )
 
 func ToSeiOrderPlacement(fundedOrder FundedOrder) dextypes.Order {
 	order := fundedOrder.Order
-	positionDirection, err := dextypes.GetPositionDirectionFromStr(order.PositionDirection)
+	positionDirection, err := dextypesutils.GetPositionDirectionFromStr(order.PositionDirection)
 	if err != nil {
 		panic(err)
 	}
-	orderType, err := dextypes.GetOrderTypeFromStr(order.OrderType)
+	orderType, err := dextypesutils.GetOrderTypeFromStr(order.OrderType)
 	if err != nil {
 		panic(err)
 	}

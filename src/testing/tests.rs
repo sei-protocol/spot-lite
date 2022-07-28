@@ -1,9 +1,9 @@
 use crate::balance::get_balance;
-use crate::contract::{instantiate, migrate, query, sudo, execute};
+use crate::contract::{execute, instantiate, migrate, query, sudo};
 use crate::error::ContractError;
 use crate::msg::{
-    BulkOrderPlacementsResponse, GetBalanceResponse, GetOrderResponse, InstantiateMsg, MigrateMsg,
-    QueryMsg, SudoMsg, ExecuteMsg,
+    BulkOrderPlacementsResponse, ExecuteMsg, GetBalanceResponse, GetOrderResponse, InstantiateMsg,
+    MigrateMsg, QueryMsg, SudoMsg,
 };
 use crate::order::get_order;
 use crate::state::{Balance, DepositInfo, OrderPlacement, PositionDirection, SettlementEntry};
@@ -72,19 +72,27 @@ fn test_deposit_withdraw() {
     .unwrap();
 
     let msg = ExecuteMsg::Deposit {};
-    execute(deps.as_mut(), mock_env(), mock_info("test", &vec![
-        Coin::new(100, "usei")
-    ]), msg).unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("test", &vec![Coin::new(100, "usei")]),
+        msg,
+    )
+    .unwrap();
     let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
     assert_eq!(balance.amount, Decimal::from_atomics(100u128, 0).unwrap());
     assert_eq!(balance.withheld, Decimal::zero());
 
-    let msg = ExecuteMsg::Withdraw { coins: vec![Coin::new(150, "usei")] };
+    let msg = ExecuteMsg::Withdraw {
+        coins: vec![Coin::new(150, "usei")],
+    };
     match execute(deps.as_mut(), mock_env(), mock_info("test", &[]), msg) {
         Ok(_) => panic!("Withdrawing more than you have is no ok"),
         Err(_) => (),
     };
-    let msg = ExecuteMsg::Withdraw { coins: vec![Coin::new(99, "usei")] };
+    let msg = ExecuteMsg::Withdraw {
+        coins: vec![Coin::new(99, "usei")],
+    };
     execute(deps.as_mut(), mock_env(), mock_info("test", &[]), msg).unwrap();
     let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
     assert_eq!(balance.amount, Decimal::one());
@@ -116,8 +124,8 @@ fn test_bulk_order_placements() {
     let deserialized = base64::decode(base64).unwrap();
     let str_data = str::from_utf8(&deserialized).unwrap();
     let res: BulkOrderPlacementsResponse = serde_json::from_str(str_data).unwrap();
-    assert_eq!(1, res.unsuccessful_order_ids.len());
-    assert_eq!(0, res.unsuccessful_order_ids[0]);
+    assert_eq!(1, res.unsuccessful_orders.len());
+    assert_eq!(0, res.unsuccessful_orders[0].id);
     match get_order(deps.as_mut().storage, 0) {
         Ok(_) => panic!("Order shouldn't exist"),
         Err(_) => (),
@@ -139,7 +147,7 @@ fn test_bulk_order_placements() {
     let deserialized = base64::decode(base64).unwrap();
     let str_data = str::from_utf8(&deserialized).unwrap();
     let res: BulkOrderPlacementsResponse = serde_json::from_str(str_data).unwrap();
-    assert_eq!(0, res.unsuccessful_order_ids.len());
+    assert_eq!(0, res.unsuccessful_orders.len());
     let order = get_order(deps.as_mut().storage, 0).unwrap();
     assert_eq!(0, order.id);
     let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "usei".to_owned());
@@ -162,8 +170,8 @@ fn test_bulk_order_placements() {
     let deserialized = base64::decode(base64).unwrap();
     let str_data = str::from_utf8(&deserialized).unwrap();
     let res: BulkOrderPlacementsResponse = serde_json::from_str(str_data).unwrap();
-    assert_eq!(1, res.unsuccessful_order_ids.len());
-    assert_eq!(1, res.unsuccessful_order_ids[0]);
+    assert_eq!(1, res.unsuccessful_orders.len());
+    assert_eq!(1, res.unsuccessful_orders[0].id);
     match get_order(deps.as_mut().storage, 1) {
         Ok(_) => panic!("Order shouldn't exist"),
         Err(_) => (),
@@ -190,8 +198,8 @@ fn test_bulk_order_placements() {
     let deserialized = base64::decode(base64).unwrap();
     let str_data = str::from_utf8(&deserialized).unwrap();
     let res: BulkOrderPlacementsResponse = serde_json::from_str(str_data).unwrap();
-    assert_eq!(1, res.unsuccessful_order_ids.len());
-    assert_eq!(2, res.unsuccessful_order_ids[0]);
+    assert_eq!(1, res.unsuccessful_orders.len());
+    assert_eq!(2, res.unsuccessful_orders[0].id);
     match get_order(deps.as_mut().storage, 2) {
         Ok(_) => panic!("Order shouldn't exist"),
         Err(_) => (),
@@ -213,7 +221,7 @@ fn test_bulk_order_placements() {
     let deserialized = base64::decode(base64).unwrap();
     let str_data = str::from_utf8(&deserialized).unwrap();
     let res: BulkOrderPlacementsResponse = serde_json::from_str(str_data).unwrap();
-    assert_eq!(0, res.unsuccessful_order_ids.len());
+    assert_eq!(0, res.unsuccessful_orders.len());
     let order = get_order(deps.as_mut().storage, 2).unwrap();
     assert_eq!(2, order.id);
     let balance = get_balance(deps.as_ref().storage, "test".to_owned(), "uatom".to_owned());

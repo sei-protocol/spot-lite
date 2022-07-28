@@ -49,6 +49,7 @@ pub struct OrderPlacement {
     pub order_type: i32,
     pub position_direction: i32,
     pub data: String,
+    pub status_description: String,
 }
 
 impl OrderPlacement {
