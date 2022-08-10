@@ -1,0 +1,42 @@
+{
+    "title": "Register initial pairs for Spot",
+    "description": "Register initial pairs for Spot",
+    "batch_contract_pair": [
+        {
+            "contract_addr": "sei1nye7j724mz8vr3es93t0u8lryet0qd6sha95yqzulhad8kwkg7rs0u3slu",
+            "pairs": [
+                {
+                    "price_denom": "USDC",
+                    "asset_denom": "ATOM",
+                    "tick_size": "0.0000001"
+                },
+                {
+                    "price_denom": "USDC",
+                    "asset_denom": "BTC",
+                    "tick_size": "0.0000001"
+                },
+                {
+                    "price_denom": "USDC",
+                    "asset_denom": "ETH",
+                    "tick_size": "0.0000001"
+                },
+                {
+                    "price_denom": "USDC",
+                    "asset_denom": "OSMO",
+                    "tick_size": "0.0000001"
+                },
+                {
+                    "price_denom": "USDC",
+                    "asset_denom": "SOL",
+                    "tick_size": "0.0000001"
+                },
+                {
+                    "price_denom": "USDC",
+                            "asset_denom": "SEI",
+                            "tick_size": "0.0000001"
+                }
+            ]
+        }
+    ],
+    "deposit": "1000000usei"
+}
