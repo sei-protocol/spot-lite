@@ -42,7 +42,10 @@ printf $password |$seid tx gov vote $proposal_id yes -y --from=admin --chain-id=
 # sleep 10 second and send a test order to USDC<>ATOM pair
 printf "\n\nWaiting for the proposal to pass"
 sleep 10
-printf $password |$seid tx dex place-orders $addr 'LONG?1.01?5?USDC?ATOM?LIMIT?{"leverage":"1","position_effect":"Open"}' --amount=1000000000uusdc -y --from=$keyname --chain-id=sei-chain --fees=1000000usei --gas=50000000 --broadcast-mode=block
+printf $password |$seid tx dex place-orders $addr 'LONG?1.01?50?USDC?ATOM?LIMIT?{"leverage":"1","position_effect":"Open"}' --amount=10000000000uusdc -y --from=$keyname --chain-id=sei-chain --fees=1000000usei --gas=50000000 --broadcast-mode=block
+printf $password |$seid tx dex place-orders $addr 'LONG?1.01?50?USDC?ATOM?LIMIT?{"leverage":"1","position_effect":"Open"}' --amount=10000000000uusdc -y --from=$keyname --chain-id=sei-chain --fees=1000000usei --gas=50000000 --broadcast-mode=block
+printf $password |$seid tx dex place-orders $addr 'SHORT?1.51?50?USDC?ATOM?LIMIT?{"leverage":"1","position_effect":"Open"}' --amount=10000000000uusdc -y --from=$keyname --chain-id=sei-chain --fees=1000000usei --gas=50000000 --broadcast-mode=block
+printf $password |$seid tx dex place-orders $addr 'SHORT?1.51?50?USDC?ATOM?LIMIT?{"leverage":"1","position_effect":"Open"}' --amount=10000000000uusdc -y --from=$keyname --chain-id=sei-chain --fees=1000000usei --gas=50000000 --broadcast-mode=block
 printf $password |$seid q dex list-long-book $addr USDC ATOM
 
 printf "\n\nDeployed spot contract address is %s\n" $addr
