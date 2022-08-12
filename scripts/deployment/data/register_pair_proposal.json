@@ -3,37 +3,37 @@
     "description": "Register initial pairs for Spot",
     "batch_contract_pair": [
         {
-            "contract_addr": "sei1nye7j724mz8vr3es93t0u8lryet0qd6sha95yqzulhad8kwkg7rs0u3slu",
+            "contract_addr": "sei1maqs3qvslrjaq8xz9402shucnr4wzdujty8lr7ux5z5rnj989lwsgjlwd3",
             "pairs": [
                 {
-                    "price_denom": "USDC",
-                    "asset_denom": "ATOM",
+                    "price_denom": "uusdc",
+                    "asset_denom": "uatom",
                     "tick_size": "0.0000001"
                 },
                 {
-                    "price_denom": "USDC",
-                    "asset_denom": "BTC",
+                    "price_denom": "uusdc",
+                    "asset_denom": "ubtc",
                     "tick_size": "0.0000001"
                 },
                 {
-                    "price_denom": "USDC",
-                    "asset_denom": "ETH",
+                    "price_denom": "uusdc",
+                    "asset_denom": "ueth",
                     "tick_size": "0.0000001"
                 },
                 {
-                    "price_denom": "USDC",
-                    "asset_denom": "OSMO",
+                    "price_denom": "uusdc",
+                    "asset_denom": "uosmo",
                     "tick_size": "0.0000001"
                 },
                 {
-                    "price_denom": "USDC",
-                    "asset_denom": "SOL",
+                    "price_denom": "uusdc",
+                    "asset_denom": "usol",
                     "tick_size": "0.0000001"
                 },
                 {
-                    "price_denom": "USDC",
-                            "asset_denom": "SEI",
-                            "tick_size": "0.0000001"
+                    "price_denom": "uusdc",
+                    "asset_denom": "usei",
+                    "tick_size": "0.0000001"
                 }
             ]
         }
