@@ -24,7 +24,7 @@ seid=~/go/bin/seid
 code=$(printf $password | $seid tx wasm store $contract -y --from=$keyname --chain-id=sei-chain --gas=10000000 --fees=10000000usei --broadcast-mode=block | grep -A 1 "code_id" | sed -n 's/.*value: "//p' | sed -n 's/"//p')
 admin_addr=$(printf $password |$seid keys show $keyname | grep -A 1 "address" | sed -n 's/.*address: //p')
 
-addr=$(printf $password |$seid tx wasm instantiate $code "{}" --from $keyname --broadcast-mode=block --label "spot" --no-admin --chain-id sei-chain --gas=30000000 --fees=300000usei -y | grep -A 1 -m 1 "key: _contract_address" | sed -n 's/.*value: //p' | xargs)
+addr=$(printf $password |$seid tx wasm instantiate $code "{}" --from $keyname --broadcast-mode=block --label "spot" --admin $admin_addr --chain-id sei-chain --gas=30000000 --fees=300000usei -y | grep -A 1 -m 1 "key: _contract_address" | sed -n 's/.*value: //p' | xargs)
 
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -35,10 +35,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   sed -i '' "s/\"contract_addr\": .*,/\"contract_addr\": \"$addr\",/g" data/register_pair_proposal.json
 fi
 
-printf $password |$seid tx dex register-contract $addr $code false true -y --from=$keyname --chain-id=sei-chain --fees=10000000usei --gas=10000000 --broadcast-mode=block
-proposal_id=$(printf $password |$seid tx dex register-pairs-proposal data/register_pair_proposal.json -y --from=$keyname --chain-id=sei-chain --fees=10000000usei --gas=500000 --broadcast-mode=block | grep -A 1 -m 1 "proposal_id" | sed -n 's/.*value: "//p' | sed -n 's/"//p')
-printf $password |$seid tx gov deposit $proposal_id 10000000usei -y --from=$keyname --chain-id=sei-chain --fees=10000000usei --gas=500000 --broadcast-mode=block
-printf $password |$seid tx gov vote $proposal_id yes -y --from=$keyname --chain-id=sei-chain --fees=2000usei --gas=500000 --broadcast-mode=block
+printf $password |$seid tx dex register-contract $addr $code true true 100000000 -y --from=$keyname --chain-id=sei-chain --fees=10000000usei --gas=10000000 --broadcast-mode=block
+proposal_id=$(printf $password |$seid tx dex register-pairs data/register_pair_proposal.json -y --from=$keyname --chain-id=sei-chain --fees=10000000usei --gas=500000 --broadcast-mode=block | grep -A 1 -m 1 "proposal_id" | sed -n 's/.*value: "//p' | sed -n 's/"//p')
 
 # sleep 10 second and send a test order to USDC<>ATOM pair
 printf "\n\nWaiting for the proposal to pass"
