@@ -1,42 +1,45 @@
 {
-    "title": "Register initial pairs for Spot",
-    "description": "Register initial pairs for Spot",
     "batch_contract_pair": [
         {
-            "contract_addr": "sei1maqs3qvslrjaq8xz9402shucnr4wzdujty8lr7ux5z5rnj989lwsgjlwd3",
+            "contract_addr": "sei1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qcepxt3",
             "pairs": [
                 {
                     "price_denom": "uusdc",
                     "asset_denom": "uatom",
-                    "tick_size": "0.0000001"
+                    "price_tick_size": "0.0000001",
+                    "quantity_tick_size": "0.0000001"
                 },
                 {
                     "price_denom": "uusdc",
                     "asset_denom": "ubtc",
-                    "tick_size": "0.0000001"
+                    "price_tick_size": "0.0000001",
+                    "quantity_tick_size": "0.0000001"
                 },
                 {
                     "price_denom": "uusdc",
                     "asset_denom": "ueth",
-                    "tick_size": "0.0000001"
+                    "price_tick_size": "0.0000001",
+                    "quantity_tick_size": "0.0000001"
                 },
                 {
                     "price_denom": "uusdc",
                     "asset_denom": "uosmo",
-                    "tick_size": "0.0000001"
+                    "price_tick_size": "0.0000001",
+                    "quantity_tick_size": "0.0000001"
                 },
                 {
                     "price_denom": "uusdc",
                     "asset_denom": "usol",
-                    "tick_size": "0.0000001"
+                    "price_tick_size": "0.0000001",
+                    "quantity_tick_size": "0.0000001"
                 },
                 {
                     "price_denom": "uusdc",
                     "asset_denom": "usei",
-                    "tick_size": "0.0000001"
+                    "price_tick_size": "0.0000001",
+                    "quantity_tick_size": "0.0000001"
                 }
             ]
         }
-    ],
-    "deposit": "1000000usei"
+    ]
 }
