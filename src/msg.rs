@@ -19,11 +19,6 @@ pub enum SudoMsg {
         entries: Vec<SettlementEntry>,
     },
 
-    BulkOrderPlacements {
-        orders: Vec<OrderPlacement>,
-        deposits: Vec<DepositInfo>,
-    },
-
     BulkOrderCancellations {
         ids: Vec<u64>,
     },

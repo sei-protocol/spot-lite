@@ -71,9 +71,6 @@ pub fn sudo(
 ) -> Result<Response, ContractError> {
     match msg {
         SudoMsg::Settlement { entries, .. } => process_settlements(deps, entries),
-        SudoMsg::BulkOrderPlacements { orders, deposits } => {
-            process_bulk_order_placements(deps, orders, deposits)
-        }
         SudoMsg::BulkOrderCancellations { ids } => process_bulk_order_cancellations(deps, ids),
         SudoMsg::Liquidation { .. } => process_bulk_liquidation(),
     }

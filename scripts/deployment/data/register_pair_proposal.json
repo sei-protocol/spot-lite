@@ -1,7 +1,7 @@
 {
     "batch_contract_pair": [
         {
-            "contract_addr": "sei1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qcepxt3",
+            "contract_addr": "sei1qvyg4jm6vl9uckefnf3guh8g9f54z69kmnwnw2y2hj7eyt7wurlsyj4z2f",
             "pairs": [
                 {
                     "price_denom": "uusdc",

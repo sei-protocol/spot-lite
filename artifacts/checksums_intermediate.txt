@@ -1,0 +1,1 @@
+e9a97d0a79ab90bc2eaf0b9946ddb75bab1a6dac3f29e220e71698d43415fadc  ./target/wasm32-unknown-unknown/release/spot_lite.wasm
