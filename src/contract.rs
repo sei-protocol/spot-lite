@@ -333,6 +333,8 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Deposit {} => deposit(deps, info),
+        ExecuteMsg::Panic {} => panic!("Panic Execute Msg"),
+        ExecuteMsg::ErrorContract {} => Err(StdError::generic_err("Error Contract Execute Msg").into()),
         ExecuteMsg::Withdraw { coins } => withdraw(deps, info, coins),
     }
 }

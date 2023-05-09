@@ -65,5 +65,7 @@ pub struct GetOrderResponse {
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Deposit {},
+    Panic {},
+    ErrorContract {},
     Withdraw { coins: Vec<Coin> },
 }
