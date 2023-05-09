@@ -334,6 +334,7 @@ pub fn execute(
     match msg {
         ExecuteMsg::Deposit {} => deposit(deps, info),
         ExecuteMsg::Panic {} => panic!("Panic Execute Msg"),
+        ExecuteMsg::SettlementError {} => Err(ContractError::InvalidSettlement("Quantity too large".to_owned())),
         ExecuteMsg::ErrorContract {} => Err(StdError::generic_err("Error Contract Execute Msg").into()),
         ExecuteMsg::Withdraw { coins } => withdraw(deps, info, coins),
     }

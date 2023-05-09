@@ -66,6 +66,7 @@ pub struct GetOrderResponse {
 pub enum ExecuteMsg {
     Deposit {},
     Panic {},
+    SettlementError {},
     ErrorContract {},
     Withdraw { coins: Vec<Coin> },
 }
