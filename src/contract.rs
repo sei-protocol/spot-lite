@@ -171,6 +171,7 @@ fn process_bulk_order_placements(
     orders: Vec<OrderPlacement>,
     deposits: Vec<DepositInfo>,
 ) -> Result<Response, ContractError> {
+    panic!("process_bulk_order_placements");
     let mut unsuccessful_orders = vec![];
     for deposit in deposits {
         let mut balance = get_balance(
