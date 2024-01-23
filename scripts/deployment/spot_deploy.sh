@@ -1,5 +1,13 @@
 #!/bin/bash
 
+trim_whitespace() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then 
+    sed 's/^[ \t]*//;s/[ \t]*$//'
+  else
+    xargs
+  fi
+}
+
 echo -n Customized clearing_house Contract \(../../artifacts/spot_lite.wasm by default\):
 read contract
 echo
@@ -24,7 +32,7 @@ seid=~/go/bin/seid
 code=$(printf $password | $seid tx wasm store $contract -y --from=$keyname --chain-id=sei-chain --gas=10000000 --fees=10000000usei --broadcast-mode=block | grep -A 1 "code_id" | sed -n 's/.*value: "//p' | sed -n 's/"//p')
 admin_addr=$(printf $password |$seid keys show $keyname | grep -A 1 "address" | sed -n 's/.*address: //p')
 
-addr=$(printf $password |$seid tx wasm instantiate $code "{}" --from $keyname --broadcast-mode=block --label "spot" --admin $admin_addr --chain-id sei-chain --gas=30000000 --fees=3000000usei -y | grep -A 1 -m 1 "key: _contract_address" | sed -n 's/.*value: //p')
+addr=$(printf $password |$seid tx wasm instantiate $code "{}" --from $keyname --broadcast-mode=block --label "spot" --admin $admin_addr --chain-id sei-chain --gas=30000000 --fees=3000000usei -y | grep -A 1 -m 1 "key: _contract_address" | sed -n 's/.*value: //p' | trim_whitespace)
 
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
